@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { FileUp, FileText, Check, X, Wand2 } from "lucide-react";
+import { FileUp, FileText, Check, X, Wand2, Info, Download } from "lucide-react";
 import Modal from "../ui/Modal";
 import { CATEGORIES } from "../../lib/categories";
 import type { CategorySlug } from "../../lib/types";
@@ -102,9 +102,9 @@ export default function UploadDialog({ open, onOpenChange }: UploadDialogProps) 
     const res = await uploadFile(category, filename, payload);
     if (res.ok) {
       if (IS_PROD) {
-        toast.success("File downloaded", {
-          description: `Commit ${filename} to src/content/${category}/ and push to redeploy.`,
-          duration: 8000,
+        toast.info("Downloaded — not yet published", {
+          description: `Move ${filename} into src/content/${category}/ in your repo, then commit and push. Vercel will rebuild and the file will appear in the dropdown.`,
+          duration: 12000,
         });
       } else {
         toast.success("Added to playbook", {
@@ -140,11 +140,32 @@ export default function UploadDialog({ open, onOpenChange }: UploadDialogProps) 
     <Modal
       open={open}
       onOpenChange={onOpenChange}
-      title="Upload knowledge file"
-      description="Drop a .md file. Frontmatter is auto-generated if missing."
+      title={IS_PROD ? "Download knowledge file" : "Upload knowledge file"}
+      description={
+        IS_PROD
+          ? "On the deployed site uploads are downloaded locally. Commit the file to your repo to publish."
+          : "Drop a .md file. Frontmatter is auto-generated if missing."
+      }
       widthClass="w-[580px]"
     >
       <div className="space-y-5">
+        {IS_PROD && (
+          <div className="flex items-start gap-2.5 px-3.5 py-3 rounded-md2 bg-vsc-accentSoft border border-vsc-accent/30">
+            <Info className="w-4 h-4 text-vsc-accent mt-0.5 shrink-0" strokeWidth={2.25} />
+            <div className="text-body2 text-vsc-text">
+              <div className="font-medium text-vsc-accent">This is the deployed site.</div>
+              <div className="mt-0.5 text-vsc-textMuted leading-relaxed">
+                Vercel hosts static files — there is no server to write to.
+                Clicking the button below will <strong className="text-vsc-text">download</strong> the
+                file to your computer. Move it into{" "}
+                <code className="font-mono text-vsc-inlineCode text-[12px]">src/content/&lt;category&gt;/</code>{" "}
+                in your repo, commit, and push. The file will appear in the
+                dropdown after Vercel rebuilds.
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Category */}
         <div>
           <label
@@ -270,13 +291,20 @@ export default function UploadDialog({ open, onOpenChange }: UploadDialogProps) 
             onClick={onSubmit}
             disabled={!canSubmit}
             className={[
-              "h-9 px-4 rounded-md2 text-body2 font-medium transition-colors ring-focus",
+              "flex items-center gap-1.5 h-10 px-4 rounded-full2 text-body font-medium transition-colors ring-focus",
               canSubmit
-                ? "bg-vsc-accent text-white hover:bg-vsc-accentHover"
+                ? "bg-vsc-accent text-vsc-onAccent hover:bg-vsc-accentHover"
                 : "bg-vsc-panel text-vsc-textFaint cursor-not-allowed border border-vsc-borderHair",
             ].join(" ")}
           >
-            {stage.kind === "uploading" ? "Adding…" : "Add to playbook"}
+            {IS_PROD && canSubmit && <Download className="w-3.5 h-3.5" />}
+            {stage.kind === "uploading"
+              ? IS_PROD
+                ? "Downloading…"
+                : "Adding…"
+              : IS_PROD
+                ? "Download file"
+                : "Add to playbook"}
           </button>
         </div>
       </div>
