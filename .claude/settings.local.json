@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wait)",
+      "Bash(curl -s http://localhost:5173/ -o /dev/null -w \"HTTP %{http_code}\\\\n\")",
+      "Bash(curl -s http://localhost:5173/src/main.tsx)",
+      "Bash(curl -s \"http://localhost:5173/src/lib/content.ts\" -o /dev/null -w \"content.ts HTTP %{http_code}\\\\n\")",
+      "Bash(curl -s \"http://localhost:5173/src/content/python/generators.md?import&raw\" -o /dev/null -w \"md HTTP %{http_code}\\\\n\")",
+      "Bash(curl -s http://localhost:4173/)",
+      "Bash(curl -s \"http://localhost:5173/node_modules/.vite/deps/gray-matter.js?v=abc\" -o /dev/null -w \"%{http_code}\\\\n\")",
+      "Bash(curl -s \"http://localhost:5173/src/lib/content.ts\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/)",
+      "Read(//f/tmp/**)",
+      "Bash(cat)",
+      "Bash(curl -s -o /dev/null -w \"HTML: %{http_code}\\\\n\" http://localhost:5173/)",
+      "Bash(curl -s -o /dev/null -w \"Sidebar: %{http_code}\\\\n\" http://localhost:5173/src/components/sidebar/Sidebar.tsx)"
+    ]
+  }
+}

@@ -1,0 +1,163 @@
+@import "@fontsource-variable/roboto-flex";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/600.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root { height: 100%; }
+  html { color-scheme: dark; }
+  body {
+    @apply bg-vsc-bg text-vsc-text font-sans text-body antialiased;
+    font-variation-settings: "opsz" 14, "wdth" 100, "GRAD" 0;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  *::selection { background: rgba(168,199,250,0.25); color: #fff; }
+
+  /* Material-style thin scrollbars */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.14);
+    background-clip: content-box;
+    border: 2px solid transparent;
+  }
+
+  :focus-visible { outline: none; }
+
+  /* Ensure inputs inherit readable colors and fonts from the theme. */
+  input, textarea, select, button {
+    font-family: inherit;
+    color: inherit;
+  }
+  input::placeholder, textarea::placeholder {
+    color: #8A8D94;
+    opacity: 1;
+  }
+
+  .tabular { font-variant-numeric: tabular-nums; }
+}
+
+@layer components {
+  .hairline {
+    background-image: linear-gradient(to right, transparent, #2A2D34, transparent);
+    height: 1px;
+  }
+
+  /* Hero: subtle tonal wash, no VS-Code blue */
+  .hero-surface {
+    background:
+      radial-gradient(120% 80% at 0% 0%, rgba(168,199,250,0.07), transparent 60%),
+      radial-gradient(80% 60% at 100% 100%, rgba(129,201,149,0.04), transparent 55%),
+      linear-gradient(180deg, #15171C 0%, #111318 100%);
+  }
+  .grid-overlay {
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 32px 32px;
+    -webkit-mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+            mask-image: radial-gradient(ellipse at center, #000 20%, transparent 75%);
+  }
+
+  .kbd-chip {
+    @apply inline-flex items-center justify-center px-1.5 h-5 rounded-xs2 bg-vsc-panelElev border border-vsc-border text-[10.5px] font-mono text-vsc-textMuted;
+    letter-spacing: 0.04em;
+  }
+
+  .ring-focus {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsc-accent focus-visible:ring-offset-0;
+  }
+
+  /* Material state layer — apply to any hoverable surface */
+  .state-layer {
+    @apply relative;
+  }
+  .state-layer::before {
+    content: "";
+    @apply absolute inset-0 pointer-events-none transition-colors;
+    background: transparent;
+  }
+  .state-layer:hover::before { background: rgba(168,199,250,0.08); }
+  .state-layer:active::before { background: rgba(168,199,250,0.14); }
+
+  /* Prose container */
+  .prose-playbook { @apply text-vsc-text; }
+  .prose-playbook > * + * { margin-top: 1.1rem; }
+  .prose-playbook p  { @apply leading-[1.75]; }
+  .prose-playbook ul { @apply list-disc pl-5 space-y-1.5; }
+  .prose-playbook ol { @apply list-decimal pl-5 space-y-1.5; }
+  .prose-playbook li::marker { color: #5F6269; }
+  .prose-playbook a  {
+    @apply text-vsc-accent underline underline-offset-[3px] transition-colors;
+    text-decoration-color: rgba(168,199,250,0.4);
+  }
+  .prose-playbook a:hover {
+    @apply text-vsc-accentHover;
+    text-decoration-color: rgba(194,215,251,0.8);
+  }
+
+  .prose-playbook h1,
+  .prose-playbook h2,
+  .prose-playbook h3 { scroll-margin-top: 96px; }
+
+  .prose-playbook table {
+    @apply w-full text-body2 border-separate border-spacing-0;
+    border: 1px solid #2A2D34;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .prose-playbook thead th {
+    @apply text-left px-3 py-2 text-vsc-heading font-semibold;
+    background: #1A1C22;
+    border-bottom: 1px solid #2A2D34;
+  }
+  .prose-playbook tbody td {
+    @apply px-3 py-2 align-top;
+    border-bottom: 1px solid #1F2128;
+  }
+  .prose-playbook tbody tr:last-child td { border-bottom: 0; }
+  .prose-playbook tbody tr:hover td { background: rgba(168,199,250,0.04); }
+
+  .prose-playbook :not(pre) > code {
+    @apply px-1.5 py-0.5 rounded-xs2 bg-vsc-panelElev text-vsc-inlineCode font-mono;
+    font-size: 0.88em;
+    border: 1px solid #2A2D34;
+  }
+
+  .prose-playbook blockquote {
+    @apply pl-4 my-4 text-vsc-textMuted italic;
+    border-left: 2px solid #A8C7FA;
+  }
+
+  .prose-playbook h1 { @apply text-h1 text-vsc-heading mt-10 mb-3; }
+  .prose-playbook h2 {
+    @apply text-h2 text-vsc-heading mt-10 mb-3 pb-2;
+    border-bottom: 1px solid #1F2128;
+  }
+  .prose-playbook h3 { @apply text-h3 text-vsc-heading mt-8 mb-2; }
+
+  .prose-playbook h1 a,
+  .prose-playbook h2 a,
+  .prose-playbook h3 a {
+    @apply text-vsc-heading no-underline;
+  }
+
+  /* mark highlight for search match */
+  mark {
+    background: rgba(253, 214, 99, 0.22);
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 2px;
+  }
+}
