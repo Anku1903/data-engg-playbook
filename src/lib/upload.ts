@@ -196,3 +196,34 @@ export async function uploadFile(
 }
 
 export const IS_PROD = import.meta.env.PROD;
+
+export interface DeleteResponse {
+  ok: boolean;
+  error?: string;
+  /** True when running in prod and the backend isn't available. */
+  manual?: boolean;
+  path?: string;
+}
+
+export async function deleteFile(
+  category: CategorySlug,
+  filename: string,
+): Promise<DeleteResponse> {
+  // Production has no backend to remove files — the user must git-remove and
+  // push. We return a "manual" flag so the UI can show the right message.
+  if (import.meta.env.PROD) {
+    return { ok: true, manual: true };
+  }
+
+  try {
+    const res = await fetch("/__delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ category, filename }),
+    });
+    const json = (await res.json()) as DeleteResponse;
+    return json;
+  } catch (e) {
+    return { ok: false, error: (e as Error).message };
+  }
+}

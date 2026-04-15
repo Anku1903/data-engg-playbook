@@ -177,6 +177,77 @@ export default function uploadPlugin(): Plugin {
           path: `/src/content/${category}/${filename}`,
         });
       });
+
+      // Delete endpoint — removes a file under src/content/<category>/.
+      // Validates category + filename and guards against path traversal.
+      server.middlewares.use("/__delete", async (req, res, next) => {
+        if (req.method !== "POST") {
+          next();
+          return;
+        }
+
+        let body: UploadBody;
+        try {
+          body = await readJson(req);
+        } catch (e) {
+          send(res, 400, { ok: false, error: `Invalid JSON body: ${(e as Error).message}` });
+          return;
+        }
+
+        const category = typeof body.category === "string" ? body.category : "";
+        const filename = typeof body.filename === "string" ? body.filename : "";
+
+        if (!category || !filename) {
+          send(res, 400, {
+            ok: false,
+            error: "Missing required fields: category, filename",
+          });
+          return;
+        }
+
+        if (!CATEGORY_SLUGS.has(category)) {
+          send(res, 400, { ok: false, error: `Unknown category "${category}"` });
+          return;
+        }
+
+        if (!FILENAME_RE.test(filename)) {
+          send(res, 400, {
+            ok: false,
+            error: "Filename must be lowercase kebab-case, e.g. `window-functions.md`",
+          });
+          return;
+        }
+
+        const contentRoot = path.resolve(server.config.root, "src", "content");
+        const expectedDir = path.resolve(contentRoot, category);
+        const targetPath = path.resolve(expectedDir, filename);
+
+        // Path-traversal guard: resolved path must be inside the expected dir.
+        if (
+          !targetPath.startsWith(expectedDir + path.sep) &&
+          targetPath !== expectedDir
+        ) {
+          send(res, 400, { ok: false, error: "Invalid path" });
+          return;
+        }
+
+        try {
+          await fs.unlink(targetPath);
+        } catch (e) {
+          const err = e as NodeJS.ErrnoException;
+          if (err.code === "ENOENT") {
+            send(res, 404, { ok: false, error: "File not found" });
+            return;
+          }
+          send(res, 500, { ok: false, error: `Delete failed: ${err.message}` });
+          return;
+        }
+
+        send(res, 200, {
+          ok: true,
+          path: `/src/content/${category}/${filename}`,
+        });
+      });
     },
   };
 }

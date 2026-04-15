@@ -215,6 +215,83 @@ export default function uploadPlugin() {
                     }
                 });
             }); });
+            // Delete endpoint — removes a file under src/content/<category>/.
+            // Validates category + filename and guards against path traversal.
+            server.middlewares.use("/__delete", function (req, res, next) { return __awaiter(_this, void 0, void 0, function () {
+                var body, e_3, category, filename, contentRoot, expectedDir, targetPath, e_4, err;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            if (req.method !== "POST") {
+                                next();
+                                return [2 /*return*/];
+                            }
+                            _a.label = 1;
+                        case 1:
+                            _a.trys.push([1, 3, , 4]);
+                            return [4 /*yield*/, readJson(req)];
+                        case 2:
+                            body = _a.sent();
+                            return [3 /*break*/, 4];
+                        case 3:
+                            e_3 = _a.sent();
+                            send(res, 400, { ok: false, error: "Invalid JSON body: ".concat(e_3.message) });
+                            return [2 /*return*/];
+                        case 4:
+                            category = typeof body.category === "string" ? body.category : "";
+                            filename = typeof body.filename === "string" ? body.filename : "";
+                            if (!category || !filename) {
+                                send(res, 400, {
+                                    ok: false,
+                                    error: "Missing required fields: category, filename",
+                                });
+                                return [2 /*return*/];
+                            }
+                            if (!CATEGORY_SLUGS.has(category)) {
+                                send(res, 400, { ok: false, error: "Unknown category \"".concat(category, "\"") });
+                                return [2 /*return*/];
+                            }
+                            if (!FILENAME_RE.test(filename)) {
+                                send(res, 400, {
+                                    ok: false,
+                                    error: "Filename must be lowercase kebab-case, e.g. `window-functions.md`",
+                                });
+                                return [2 /*return*/];
+                            }
+                            contentRoot = path.resolve(server.config.root, "src", "content");
+                            expectedDir = path.resolve(contentRoot, category);
+                            targetPath = path.resolve(expectedDir, filename);
+                            // Path-traversal guard: resolved path must be inside the expected dir.
+                            if (!targetPath.startsWith(expectedDir + path.sep) &&
+                                targetPath !== expectedDir) {
+                                send(res, 400, { ok: false, error: "Invalid path" });
+                                return [2 /*return*/];
+                            }
+                            _a.label = 5;
+                        case 5:
+                            _a.trys.push([5, 7, , 8]);
+                            return [4 /*yield*/, fs.unlink(targetPath)];
+                        case 6:
+                            _a.sent();
+                            return [3 /*break*/, 8];
+                        case 7:
+                            e_4 = _a.sent();
+                            err = e_4;
+                            if (err.code === "ENOENT") {
+                                send(res, 404, { ok: false, error: "File not found" });
+                                return [2 /*return*/];
+                            }
+                            send(res, 500, { ok: false, error: "Delete failed: ".concat(err.message) });
+                            return [2 /*return*/];
+                        case 8:
+                            send(res, 200, {
+                                ok: true,
+                                path: "/src/content/".concat(category, "/").concat(filename),
+                            });
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
         },
     };
 }
