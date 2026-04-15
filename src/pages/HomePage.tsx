@@ -18,16 +18,16 @@ export default function HomePage() {
   );
 
   return (
-    <div className="max-w-5xl mx-auto px-10 py-12">
+    <div className="max-w-5xl mx-auto px-5 sm:px-10 py-8 sm:py-12">
       {/* Hero */}
-      <div className="relative overflow-hidden rounded-lg2 border border-vsc-borderHair hero-surface p-10">
+      <div className="relative overflow-hidden rounded-lg2 border border-vsc-borderHair hero-surface p-6 sm:p-10">
         <div className="absolute inset-0 grid-overlay opacity-60 pointer-events-none" />
         <div className="relative">
           <div className="inline-flex items-center gap-2 px-3 h-7 rounded-full2 bg-vsc-accentSoft text-vsc-accent text-[11px] font-medium tracking-wide">
             <Sparkles className="w-3 h-3" />
             <span>Personal Knowledge Base</span>
           </div>
-          <h1 className="mt-5 text-hero font-display text-vsc-heading">
+          <h1 className="mt-5 text-[32px] leading-[1.1] sm:text-hero font-display text-vsc-heading tracking-tightest">
             Your data engineering <br />
             <span className="text-vsc-accent">reference library.</span>
           </h1>

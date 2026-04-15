@@ -10,7 +10,7 @@ interface MarkdownViewProps {
 
 export default function MarkdownView({ source }: MarkdownViewProps) {
   return (
-    <div className="markdown-body">
+    <div className="prose-playbook">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeSlug, [rehypeAutolinkHeadings, { behavior: "wrap" }]]}

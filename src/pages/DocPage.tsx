@@ -10,7 +10,7 @@ export default function DocPage() {
   if (!doc) return <NotFound />;
 
   return (
-    <article className="max-w-3xl mx-auto px-8 py-8">
+    <article className="max-w-3xl mx-auto px-5 sm:px-8 py-6 sm:py-10">
       <Breadcrumb category={doc.category} doc={doc} />
       <h1 className="text-h1 text-vsc-heading mt-3 mb-1">{doc.title}</h1>
       <div className="flex flex-wrap items-center gap-2 text-body2 text-vsc-textDim mb-2">

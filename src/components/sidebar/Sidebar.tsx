@@ -1,17 +1,21 @@
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ChevronDown, BookOpen } from "lucide-react";
+import { ChevronDown, BookOpen, X } from "lucide-react";
 import { SIDEBAR } from "../../lib/content";
 import type { Category, Subcategory } from "../../lib/types";
 import UploadButton from "../upload/UploadButton";
 
-// Two-dropdown sidebar: Category + Subcategory. Navigates on subcategory pick.
-function SidebarImpl() {
+interface SidebarProps {
+  mobileOpen: boolean;
+  onCloseMobile: () => void;
+}
+
+// Two-dropdown sidebar: Category + Subcategory + UploadButton directly below.
+// Responsive: sticky on md+, drawer on mobile.
+function SidebarImpl({ mobileOpen, onCloseMobile }: SidebarProps) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
-  // Derive active category + subcategory from the route so the UI stays in sync
-  // when users navigate via search or breadcrumbs.
   const { routeCategory, routeSubcategory } = useMemo(() => {
     const parts = pathname.split("/").filter(Boolean);
     return {
@@ -20,7 +24,6 @@ function SidebarImpl() {
     };
   }, [pathname]);
 
-  // Category we're browsing. Seeded from route, falls back to first non-empty.
   const initialCategory =
     routeCategory ||
     SIDEBAR.find(c => c.subcategories.length > 0)?.slug ||
@@ -28,7 +31,6 @@ function SidebarImpl() {
 
   const [category, setCategory] = useState<string>(initialCategory);
 
-  // Keep local state in sync when the route changes externally.
   useEffect(() => {
     if (routeCategory && routeCategory !== category) setCategory(routeCategory);
   }, [routeCategory, category]);
@@ -47,8 +49,9 @@ function SidebarImpl() {
   const onSubcategoryChange = useCallback(
     (sub: Subcategory) => {
       navigate(sub.path);
+      onCloseMobile();
     },
-    [navigate],
+    [navigate, onCloseMobile],
   );
 
   const totalDocs = useMemo(
@@ -57,53 +60,85 @@ function SidebarImpl() {
   );
 
   return (
-    <aside className="row-start-2 col-start-1 flex flex-col bg-vsc-sidebar border-r border-vsc-borderHair overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center gap-2 px-5 pt-5 pb-1">
-        <BookOpen className="w-4 h-4 text-vsc-accent" strokeWidth={2} />
-        <span className="font-display text-[13px] font-semibold tracking-tight text-vsc-heading">
-          Playbook
-        </span>
-        <span className="ml-auto tabular text-[11px] text-vsc-textDim">
-          {totalDocs}
-        </span>
-      </div>
-      <p className="px-5 pb-4 text-[11.5px] text-vsc-textDim leading-snug">
-        Browse by category
-      </p>
-
-      {/* Dropdowns */}
-      <div className="px-4 space-y-3">
-        <CategorySelect
-          value={category}
-          onChange={onCategoryChange}
-          categories={SIDEBAR}
+    <>
+      {/* Mobile backdrop */}
+      {mobileOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/65 backdrop-blur-sm animate-fade-backdrop"
+          onClick={onCloseMobile}
+          aria-hidden="true"
         />
-        <SubcategorySelect
-          category={category}
-          value={routeSubcategory}
-          onChange={onSubcategoryChange}
-          subcategories={subcategories}
-        />
-      </div>
-
-      {/* Active doc hint */}
-      {activeCategory && routeSubcategory && (
-        <div className="mx-4 mt-4 px-3 py-2.5 rounded-md2 bg-vsc-accentSoft border border-vsc-accent/20">
-          <div className="text-[10.5px] font-mono uppercase tracking-[0.12em] text-vsc-accent">
-            Reading
-          </div>
-          <div className="mt-0.5 text-body2 text-vsc-text truncate">
-            {subcategories.find(s => s.slug === routeSubcategory)?.title ??
-              routeSubcategory}
-          </div>
-        </div>
       )}
 
-      <div className="flex-1" />
+      <aside
+        className={[
+          // Desktop: sticky grid column
+          "md:row-start-2 md:col-start-1 md:static md:translate-x-0",
+          // Mobile: fixed drawer
+          "fixed top-0 bottom-0 left-0 z-50 w-[86vw] max-w-[320px] md:max-w-none md:w-auto",
+          "flex flex-col bg-vsc-sidebar border-r border-vsc-borderHair overflow-hidden",
+          "transition-transform duration-250 ease-out",
+          mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+        ].join(" ")}
+      >
+        {/* Header (with close on mobile) */}
+        <div className="flex items-center gap-2 px-5 pt-5 pb-1">
+          <BookOpen className="w-4 h-4 text-vsc-accent" strokeWidth={2} />
+          <span className="font-display text-[13px] font-semibold tracking-tight text-vsc-heading">
+            Playbook
+          </span>
+          <span className="ml-auto tabular text-[11px] text-vsc-textDim">
+            {totalDocs}
+          </span>
+          <button
+            type="button"
+            onClick={onCloseMobile}
+            aria-label="Close menu"
+            className="md:hidden -mr-1 flex items-center justify-center w-7 h-7 rounded-full2 text-vsc-textMuted hover:text-vsc-text hover:bg-vsc-hover transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <p className="px-5 pb-4 text-[11.5px] text-vsc-textDim leading-snug">
+          Browse by category
+        </p>
 
-      <UploadButton />
-    </aside>
+        {/* Dropdowns + upload */}
+        <div className="px-4 space-y-3 overflow-y-auto">
+          <CategorySelect
+            value={category}
+            onChange={onCategoryChange}
+            categories={SIDEBAR}
+          />
+          <SubcategorySelect
+            category={category}
+            value={routeSubcategory}
+            onChange={onSubcategoryChange}
+            subcategories={subcategories}
+          />
+
+          {/* Upload right under subcategory */}
+          <div className="pt-1">
+            <UploadButton />
+          </div>
+
+          {/* Active reading hint */}
+          {activeCategory && routeSubcategory && (
+            <div className="mt-2 px-3 py-2.5 rounded-md2 bg-vsc-accentSoft border border-vsc-accent/20">
+              <div className="text-[10.5px] font-mono uppercase tracking-[0.12em] text-vsc-accent">
+                Reading
+              </div>
+              <div className="mt-0.5 text-body2 text-vsc-text truncate">
+                {subcategories.find(s => s.slug === routeSubcategory)?.title ??
+                  routeSubcategory}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1" />
+      </aside>
+    </>
   );
 }
 
@@ -126,7 +161,6 @@ function CategorySelect({ value, onChange, categories }: CategorySelectProps) {
     [categories, value],
   );
 
-  // Close on outside click / escape.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {

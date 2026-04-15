@@ -162,6 +162,26 @@ export async function uploadFile(
   filename: string,
   contents: string,
 ): Promise<UploadResponse> {
+  // Production: no backend to write to, so we download the generated file for
+  // the user to commit to their repo and redeploy. The dev Vite plugin path is
+  // only used when running locally with `npm run dev`.
+  if (import.meta.env.PROD) {
+    try {
+      const blob = new Blob([contents], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      return { ok: true, path: `downloaded:${category}/${filename}` };
+    } catch (e) {
+      return { ok: false, error: (e as Error).message };
+    }
+  }
+
   try {
     const res = await fetch("/__upload", {
       method: "POST",
@@ -174,3 +194,5 @@ export async function uploadFile(
     return { ok: false, error: (e as Error).message };
   }
 }
+
+export const IS_PROD = import.meta.env.PROD;

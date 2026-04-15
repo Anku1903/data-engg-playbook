@@ -15,6 +15,7 @@ import {
   type ParsedPreview,
   uploadFile,
   validateUpload,
+  IS_PROD,
 } from "../../lib/upload";
 
 interface UploadDialogProps {
@@ -100,9 +101,16 @@ export default function UploadDialog({ open, onOpenChange }: UploadDialogProps) 
     setStage({ kind: "uploading" });
     const res = await uploadFile(category, filename, payload);
     if (res.ok) {
-      toast.success("Added to playbook", {
-        description: `${filename} → ${category}. Sidebar will refresh automatically.`,
-      });
+      if (IS_PROD) {
+        toast.success("File downloaded", {
+          description: `Commit ${filename} to src/content/${category}/ and push to redeploy.`,
+          duration: 8000,
+        });
+      } else {
+        toast.success("Added to playbook", {
+          description: `${filename} → ${category}. Sidebar will refresh automatically.`,
+        });
+      }
       onOpenChange(false);
       // Reset state on close.
       setTimeout(() => {

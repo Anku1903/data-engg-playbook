@@ -153,11 +153,19 @@
     @apply text-vsc-heading no-underline;
   }
 
-  /* mark highlight for search match */
-  mark {
-    background: rgba(253, 214, 99, 0.22);
+  /* In-page search highlights */
+  mark[data-search-hit] {
+    background: rgba(253, 214, 99, 0.28);
     color: inherit;
     border-radius: 2px;
     padding: 0 2px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    transition: background 120ms ease-out;
+  }
+  mark[data-search-hit][data-search-active] {
+    background: #FDD663;
+    color: #111318;
+    box-shadow: 0 0 0 2px rgba(253, 214, 99, 0.4);
   }
 }
